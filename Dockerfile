@@ -1,4 +1,4 @@
-FROM postgres:{{VERSION}}
+FROM postgres:9.6
 MAINTAINER Marc Bachmann <marc@livingdocs.io>
 
 ENV PLV8_VERSION 1.4.8

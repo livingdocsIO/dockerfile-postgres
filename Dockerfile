@@ -11,6 +11,6 @@ RUN yum install -y epel-release && \
     cd /tmp && curl -L https://github.com/plv8/plv8/archive/v$PLV8_VERSION.tar.gz | tar -xz && \
     cd plv8-$PLV8_VERSION && PATH=/opt/rh/rh-postgresql95/root/usr/bin:$PATH make install && \
     cd / && rm -Rf /tmp/plv8-$PLV8_VERSION && \
-    yum clean all && yum -y history undo last
+    yum -y history undo last && yum -y --setopt=tsflags=nodocs install v8 && yum clean all
 
 USER 26

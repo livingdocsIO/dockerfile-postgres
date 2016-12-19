@@ -11,7 +11,7 @@ env:
   - VERSION=9.6 NAME=pg96 TAGS="livingdocs/postgres:9.6"
 
 before_install:
-  - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
 script:
   - cat Dockerfile | sed "s/{{VERSION}}/$VERSION/" | docker build -t $NAME -

@@ -1,16 +1,16 @@
-FROM postgres:{{VERSION}}
-MAINTAINER Marc Bachmann <marc@livingdocs.io>
+FROM centos/postgresql-95-centos7
 
-ENV PLV8_VERSION 1.4.8
-RUN apt-get update && apt-get upgrade -y && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends \
-    build-essential curl ca-certificates libv8-dev postgresql-server-dev-$PG_MAJOR && \
+ENV PLV8_VERSION=1.4.8
 
-   	# Install plv8
-	cd /tmp && curl -L https://github.com/plv8/plv8/archive/v$PLV8_VERSION.tar.gz | tar -xz && \
-	cd plv8-$PLV8_VERSION && make all install && \
-	cd / && rm -Rf /tmp/plv8-$PLV8_VERSION && \
+USER root
 
-    # cleanup
-    apt-get autoremove -y && apt-get clean && \
-    rm -Rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN yum install -y epel-release && \
+    INSTALL_PKGS="rh-postgresql95-postgresql-devel gcc gcc-c++ make openssl-devel v8-devel" && \
+    yum -y --setopt=tsflags=nodocs install $INSTALL_PKGS && \
+    rpm -V $INSTALL_PKGS && \
+    cd /tmp && curl -L https://github.com/plv8/plv8/archive/v$PLV8_VERSION.tar.gz | tar -xz && \
+    cd plv8-$PLV8_VERSION && PATH=/opt/rh/rh-postgresql95/root/usr/bin:$PATH make install && \
+    cd / && rm -Rf /tmp/plv8-$PLV8_VERSION && \
+    yum -y history undo last && yum -y --setopt=tsflags=nodocs install v8 && yum clean all
+
+USER 26

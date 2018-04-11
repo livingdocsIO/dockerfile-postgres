@@ -10,14 +10,12 @@ env:
   - VERSION=9.5 NAME=pg95 TAGS="livingdocs/postgres:9.5"
   - VERSION=9.6 NAME=pg96 TAGS="livingdocs/postgres:9.6"
 
-before_install:
-  - echo $DOCKER_PASSWORD | docker login -u="$DOCKER_USERNAME" --password-stdin 1>/dev/null
-
 script:
   - cat Dockerfile | sed "s/{{VERSION}}/$VERSION/" | docker build -t $NAME -
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
+      echo $DOCKER_PASSWORD | docker login -u="$DOCKER_USERNAME" --password-stdin 1>/dev/null
       for tag in $TAGS; do
         docker tag $NAME $tag;
         echo "push the image $tag";

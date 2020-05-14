@@ -1,0 +1,18 @@
+#!/bin/bash
+set -Eeuo pipefail
+if [ "$(id -u)" != "0" ] ; then >&2 echo "This command must be run as the root user."; exit 1; fi
+
+# Support initdb with directories that have wrong permissions and exit after execution
+[ "$1" == "initdb" ] && exec /scripts/initdb "${@:2}"
+[ "$1" == "standby" ] && exec /scripts/standby "${@:2}"
+[ "$1" == "recover" ] && exec /scripts/recover "${@:2}"
+[ "$1" == "backup" ] && exec /scripts/backup "${@:2}"
+[ "$1" == "pg_ctl" ] && exec su-exec postgres "$@"
+[ "$1" == "pg_basebackup" ] && exec su-exec postgres "$@"
+[ "$1" != "postgres" ] && exec "$@"
+
+# Do not execute initdb when the database already exists locally
+if [ ! -s "$PGDATA/PG_VERSION" ]; then /scripts/initdb; fi
+
+# Directly invoke postgres if it's provided as first argument
+exec su-exec postgres "$@"

@@ -1,0 +1,5 @@
+#!/bin/bash
+set -Eeo pipefail
+if [ -s "$PGDATA/PG_VERSION" ]; then exec su-exec postgres postgres; fi
+/scripts/recover -R "$@"
+exec su-exec postgres postgres

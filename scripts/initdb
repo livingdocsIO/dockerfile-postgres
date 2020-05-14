@@ -1,0 +1,61 @@
+#!/bin/bash
+set -Eeo pipefail
+source /usr/local/bin/docker-entrypoint.sh
+
+if [ "$POSTGRES_HOST_AUTH_METHOD" == "" ] && [ "$POSTGRES_PASSWORD" == "" ]; then
+  POSTGRES_HOST_AUTH_METHOD=trust
+fi
+
+docker_setup_env
+if [ "${#POSTGRES_PASSWORD}" -ge 100 ]; then
+  >&2 printf '
+
+    WARNING: The supplied POSTGRES_PASSWORD is 100+ characters.
+      This will not work if used via PGPASSWORD with "psql".
+      https://www.postgresql.org/message-id/flat/E1Rqxp2-0004Qt-PL%40wrigleys.postgresql.org (BUG #6412)
+      https://github.com/docker-library/postgres/issues/507
+
+  '
+fi
+
+docker_create_db_directories
+
+if [ "$(id -u)" == "0" ] ; then exec su-exec postgres "$BASH_SOURCE" "$@"; fi
+
+INIT_FILES="$(ls /var/lib/postgresql/initdb.d/* 2> /dev/null ||:)"
+if ! docker_init_database_dir; then
+  >&2 echo -------------------------
+  >&2 echo CURRENT FILES IN \$PGDATA
+  >&2 ls -lisa $PGDATA
+  >&2 echo -------------------------
+  exit 1
+fi
+
+# Set the default socket directory to /var/run/postgresql or $PGHOST
+sed -i "s?.*unix_socket_directories.*?unix_socket_directories = '$PGHOST'?g" $PGDATA/postgresql.conf
+sed -i "s?.*listen_addresses.*?listen_addresses = '*'?g" $PGDATA/postgresql.conf
+
+# Use a secure pg_hba.conf by default
+install -m 600 /scripts/pg_hba.conf $PGDATA
+
+# Optionally allow to have it insecure for CI or local dev
+if [ "$POSTGRES_HOST_AUTH_METHOD" == "trust" ]; then
+  sed -i 's/ md5/ trust/g' $PGDATA/pg_hba.conf
+fi
+
+# PGPASSWORD is required for psql when authentication is required for 'local' connections via pg_hba.conf and is otherwise harmless
+# e.g. when '--auth=md5' or '--auth-local=md5' is used in POSTGRES_INITDB_ARGS
+export PGPASSWORD="${PGPASSWORD:-$POSTGRES_PASSWORD}"
+docker_temp_server_start "$@"
+
+docker_setup_db
+[ "${#INIT_FILES}" -gt 0 ] && docker_process_init_files $INIT_FILES
+
+docker_temp_server_stop
+unset PGPASSWORD
+
+>&2 printf '
+
+PostgreSQL init process complete; ready for start up.
+
+'

@@ -32,8 +32,11 @@ if ! docker_init_database_dir; then
 fi
 
 # Set the default socket directory to /var/run/postgresql or $PGHOST
-sed -i "s?.*unix_socket_directories.*?unix_socket_directories = '$PGHOST'?g" $PGDATA/postgresql.conf
-sed -i "s?.*listen_addresses.*?listen_addresses = '*'?g" $PGDATA/postgresql.conf
+sed -i "s?.*unix_socket_directories =.*?unix_socket_directories = '$PGHOST'?g" $PGDATA/postgresql.conf
+sed -i "s?.*listen_addresses =.*?listen_addresses = '*'?g" $PGDATA/postgresql.conf
+sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = 'pg_stat_statements'?g" $PGDATA/postgresql.conf
+sed -i "s?.*synchronous_commit =.*?synchronous_commit = off?g" $PGDATA/postgresql.conf
+sed -i "s?.*wal_level =.*?wal_level = 'logical'?g" $PGDATA/postgresql.conf
 
 # Use a secure pg_hba.conf by default
 install -m 600 /scripts/pg_hba.conf $PGDATA

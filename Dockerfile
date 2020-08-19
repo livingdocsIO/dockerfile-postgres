@@ -17,7 +17,7 @@ RUN apk add --no-cache bash curl nano pspg shadow su-exec postgresql postgresql-
   chown -R postgres:postgres /var/lib/postgresql /var/run/postgresql && \
   apk del shadow
 
-COPY --from=postgres:12.2-alpine /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --from=postgres:12.4-alpine /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 ADD ./scripts /scripts
 ENTRYPOINT ["/scripts/entrypoint"]
 CMD ["postgres"]

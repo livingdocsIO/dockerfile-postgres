@@ -9,7 +9,7 @@ ENV PGDATA /var/lib/postgresql/data
 ENV PAGER 'pspg -s 0'
 ENV PATH="$PATH:/scripts"
 
-RUN apk add --no-cache bash curl nano pspg shadow su-exec postgresql postgresql-contrib && \
+RUN apk add --no-cache bash curl nano pspg shadow su-exec jq postgresql postgresql-contrib && \
   cd /usr/local/bin && curl -L https://github.com/wal-g/wal-g/releases/download/v0.2.15/wal-g.linux-amd64.tar.gz | tar xzf - && \
   usermod -u 1000 postgres && \
   groupmod -g 1000 postgres && \

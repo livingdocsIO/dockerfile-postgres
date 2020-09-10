@@ -35,6 +35,8 @@ fi
 sed -i "s?.*unix_socket_directories =.*?unix_socket_directories = '$PGHOST'?g" $PGDATA/postgresql.conf
 sed -i "s?.*listen_addresses =.*?listen_addresses = '*'?g" $PGDATA/postgresql.conf
 sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = 'pg_stat_statements'?g" $PGDATA/postgresql.conf
+sed -i "s?.*idle_in_transaction_session_timeout =.*?idle_in_transaction_session_timeout = 60s?g" $PGDATA/postgresql.conf
+sed -i "s?.*promote_trigger_file =.*?promote_trigger_file = '$PGDATA/promote.signal'?g" $PGDATA/postgresql.conf
 sed -i "s?.*synchronous_commit =.*?synchronous_commit = off?g" $PGDATA/postgresql.conf
 sed -i "s?.*wal_level =.*?wal_level = 'logical'?g" $PGDATA/postgresql.conf
 

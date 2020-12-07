@@ -1,4 +1,4 @@
-FROM postgres:13-alpine
+FROM alpine
 WORKDIR /var/lib/postgresql/data
 VOLUME /var/lib/postgresql/data
 VOLUME /var/run/postgresql
@@ -9,11 +9,9 @@ ENV PGDATA /var/lib/postgresql/data
 ENV PAGER 'pspg -s 0'
 ENV PATH="$PATH:/scripts"
 
-# Once postgresql 13 is available in the alpine image,
-# we can add the modules postgresql postgresql-contrib again
-# https://pkgs.alpinelinux.org/packages?name=postgresql&branch=edge
-RUN apk add --no-cache bash curl nano pspg shadow su-exec jq && \
-  cd /usr/local/bin && curl -L https://github.com/wal-g/wal-g/releases/download/v0.2.15/wal-g.linux-amd64.tar.gz | tar xzf - && \
+RUN apk add --repository=http://dl-cdn.alpinelinux.org/alpine/edge/main postgresql postgresql-contrib && \
+  apk add --no-cache bash curl nano pspg shadow su-exec jq && \
+  cd /usr/local/bin && curl -L https://github.com/wal-g/wal-g/releases/download/v0.2.19/wal-g.linux-amd64.tar.gz | tar xzf - && \
   usermod -u 1000 postgres && \
   groupmod -g 1000 postgres && \
   mkdir -p /var/lib/postgresql/initdb.d /var/run/postgresql && \

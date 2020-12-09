@@ -1,2 +1,2 @@
 #!/bin/bash
-exec su-exec postgres wal-g backup-push "$PGDATA"
+exec su-exec postgres wal-g backup-push "$PGDATA" --config="$WALG_CONFIG_FILE"

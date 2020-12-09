@@ -2,14 +2,16 @@
 set -Eeuo pipefail
 if [ "$(id -u)" != "0" ] ; then >&2 echo "This command must be run as the root user."; exit 1; fi
 
+first=${1:-}
+
 # Support initdb with directories that have wrong permissions and exit after execution
-[ "$1" == "initdb" ] && exec /scripts/initdb "${@:2}"
-[ "$1" == "standby" ] && exec /scripts/standby "${@:2}"
-[ "$1" == "recover" ] && exec /scripts/recover "${@:2}"
-[ "$1" == "backup" ] && exec /scripts/backup "${@:2}"
-[ "$1" == "pg_ctl" ] && exec su-exec postgres "$@"
-[ "$1" == "pg_basebackup" ] && exec su-exec postgres "$@"
-[ "$1" != "postgres" ] && exec "$@"
+[ "$first" == "initdb" ] && exec /scripts/initdb "${@:2}"
+[ "$first" == "standby" ] && exec /scripts/standby "${@:2}"
+[ "$first" == "recover" ] && exec /scripts/recover "${@:2}"
+[ "$first" == "backup" ] && exec /scripts/backup "${@:2}"
+[ "$first" == "pg_ctl" ] && exec su-exec postgres "$@"
+[ "$first" == "pg_basebackup" ] && exec su-exec postgres "$@"
+[ "$first" != "postgres" ] && exec "$@"
 
 # Do not execute initdb when the database already exists locally
 if [ ! -s "$PGDATA/PG_VERSION" ]; then /scripts/initdb; fi

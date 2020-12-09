@@ -9,7 +9,7 @@ docker_create_db_directories
 # if wal-g is configured, fetch the latest backup using that
 # instead of pg_basebackup as it's much faster
 if false; then
-  su-exec postgres wal-g backup-fetch "$PGDATA" LATEST
+  su-exec postgres wal-g backup-fetch "$PGDATA" LATEST --config="$WALG_CONFIG_FILE"
   # set promote_trigger_file in config
 else
   # Fetch most recent full backup if there's no data present

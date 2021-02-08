@@ -45,23 +45,53 @@ docker exec postgres-2 psql -c "SELECT * FROM hello;"
 
 ### Advanced setup using passwords
 ```bash
-# Create the users on database intialization
-# Everything in the /var/lib/postgresql/initdb.d directory gets automatically executed
-echo "ALTER ROLE postgres ENCRYPTED PASSWORD 'some-postgres-password';" >> on_cluster_create.sql
-echo "CREATE USER replication REPLICATION LOGIN ENCRYPTED PASSWORD 'some-replication-password';" >> on_cluster_create.sql
+# Create a docker network to emulate dns resolution in a production system
+docker network create local
 
-# Create the containers
-docker run -d -p 5433:5432 --name postgres-1 -e POSTGRES_HOST_AUTH_METHOD=md5 -v $PWD/on_cluster_create.sql:/var/lib/postgresql/initdb.d/on_cluster_create.sql livingdocs/postgres:13.1
-docker run -d -p 5434:5432 --name postgres-2 livingdocs/postgres:13.1 standby -d "host=host.docker.internal port=5433 user=replication password=some-replication-password target_session_attrs=read-write"
+# First create the database primary
+docker run -d -p 5433:5432 --name postgres-1 --network=local --network-alias=postgres -e POSTGRES_HOST_AUTH_METHOD=md5 livingdocs/postgres:13.1
+
+# Create the users on database intialization
+# You could also moount an sql or script into /var/lib/postgresql/initdb.d during cluster startup to execute the script automatically.
+docker exec postgres-1 psql -c "ALTER ROLE postgres ENCRYPTED PASSWORD 'some-postgres-password';"
+docker exec postgres-1 psql -c "CREATE USER replication REPLICATION LOGIN ENCRYPTED PASSWORD 'some-replication-password';"
+
+# The launch the replicas
+export DB_URL="host=postgres port=5432 user=replication password=some-replication-password target_session_attrs=read-write"
+docker run -d -p 5434:5432 --name postgres-2 --network=local --network-alias=postgres livingdocs/postgres:13.1 standby -d $DB_URL
+docker run -d -p 5435:5432 --name postgres-3 --network=local --network-alias=postgres livingdocs/postgres:13.1 standby -d $DB_URL
 
 # Test the replication
-docker exec postgres-1 psql -c "CREATE TABLE hello (value text); INSERT INTO hello(value) VALUES('world');"
+docker exec postgres-1 psql -c "CREATE TABLE hello (value text); INSERT INTO hello(value) VALUES('hello');"
 docker exec postgres-2 psql -c "SELECT * FROM hello;"
-# Output:
-#   value
-#  -------
+docker exec postgres-3 psql -c "SELECT * FROM hello;"
+# Output for both instances:
+#  value
+# -------
+# hello
+# (1 row)
+
+
+#
+# Test a replica promotion (manually)
+#
+docker rm -f postgres-1
+
+# Inserts will still fail into slaves: ERROR:  cannot execute INSERT in a read-only transaction
+docker exec postgres-2 psql -c "INSERT INTO hello(value) VALUES('world');"
+
+# Promote a slave
+docker exec postgres-2 touch /var/lib/postgresql/data/promote.signal
+
+# And test it
+docker exec postgres-2 psql -c "INSERT INTO hello(value) VALUES('world');"
+docker exec postgres-3 psql -c "SELECT * FROM hello;"
+# Output for both instances:
+#  value
+# -------
+#  hello
 #  world
-#  (1 row)
+# (2 rows)
 ```
 
 ## To promote a replica to a primary

@@ -1,3 +1,7 @@
+# Deprecated alpine image
+# We don't continue to support that as building deps is more complicated
+# e.g. pg_auto_failover doesn't support alpine linux.
+# The debian-based image is only 30MB larger even with pg_auto_failover and pg_squeeze installed.
 FROM golang:1.13.10-alpine3.11 AS walg
 ENV WALG_VERSION=v0.2.19
 

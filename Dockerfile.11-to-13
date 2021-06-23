@@ -1,0 +1,16 @@
+FROM livingdocs/postgres:13.3
+USER root
+RUN set -e \
+  export DEBIAN_FRONTEND=noninteractive && \
+  apt-get update && apt-get install -y postgresql-11 && \
+  apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/log/*
+
+USER postgres
+ENV PGBINOLD=/usr/lib/postgresql/11/bin
+ENV PGBINNEW=/usr/lib/postgresql/13/bin
+ENV PGDATAOLD=/var/lib/postgresql/11
+ENV PGDATANEW=/var/lib/postgresql/data
+
+STOPSIGNAL SIGINT
+ENTRYPOINT ["/scripts/entrypoint"]
+CMD ["upgrade", "--link"]

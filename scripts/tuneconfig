@@ -27,7 +27,7 @@ else
   sed -i "s?.*synchronous_commit =.*?# synchronous_commit = off?g" $PGDATA/postgresql.conf
   # pg_auto_failover can't handle manual promotes not handled using pg_autoctl
   sed -i "s?.*promote_trigger_file =.*?# promote_trigger_file = '$PGDATA/promote.signal'?g" $PGDATA/postgresql.conf
-  # On production clusters we want to have a larger wal keep config
+  # On production clusters we want to have a larger WAL keep size
   sed -i "s?.*wal_keep_size =.*?wal_keep_size = '10 GB'?g" $PGDATA/postgresql.conf
 fi
 

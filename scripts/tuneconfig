@@ -1,0 +1,38 @@
+#!/bin/bash
+set -Eeo pipefail
+if [ "$(id -u)" != "1000" ] ; then exec su-exec postgres "$BASH_SOURCE" "$@"; fi
+
+# Set the default socket directory to /var/run/postgresql or $PGHOST
+sed -i "s?.*unix_socket_directories =.*?unix_socket_directories = '$PGHOST'?g" $PGDATA/postgresql.conf
+sed -i "s?.*listen_addresses =.*?listen_addresses = '*'?g" $PGDATA/postgresql.conf
+
+sed -i "s?.*idle_in_transaction_session_timeout =.*?idle_in_transaction_session_timeout = 60s?g" $PGDATA/postgresql.conf
+sed -i "s?.*hot_standby_feedback =.*?hot_standby_feedback = on?g" $PGDATA/postgresql.conf
+sed -i "s?.*hot_standby =.*?hot_standby = on?g" $PGDATA/postgresql.conf
+sed -i "s?.*max_wal_senders =.*?max_wal_senders = 12?g" $PGDATA/postgresql.conf
+sed -i "s?.*wal_sender_timeout =.*?wal_sender_timeout = '30s'?g" $PGDATA/postgresql.conf
+sed -i "s?.*wal_log_hints =.*?wal_log_hints = on?g" $PGDATA/postgresql.conf
+sed -i "s?.*wal_level =.*?wal_level = 'logical'?g" $PGDATA/postgresql.conf
+sed -i "s?.*max_connections =.*?max_connections = 300?g" $PGDATA/postgresql.conf
+
+if ! grep -q "postgresql-auto-failover" "$PGDATA/postgresql.conf"; then
+  # Attention, the promote trigger file can be destructive with pg_auto_failover
+  sed -i "s?.*promote_trigger_file =.*?promote_trigger_file = '$PGDATA/promote.signal'?g" $PGDATA/postgresql.conf
+  sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = 'pg_stat_statements,pg_squeeze'?g" $PGDATA/postgresql.conf
+  sed -i "s?.*synchronous_commit =.*?synchronous_commit = off?g" $PGDATA/postgresql.conf
+  sed -i "s?.*wal_keep_size =.*?wal_keep_size = '1 GB'?g" $PGDATA/postgresql.conf
+else
+  sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = 'pg_stat_statements,pg_squeeze,pgautofailover'?g" $PGDATA/postgresql.conf
+  # Synchronous commit is managed by pg_auto_failover
+  sed -i "s?.*synchronous_commit =.*?# synchronous_commit = off?g" $PGDATA/postgresql.conf
+  # pg_auto_failover can't handle manual promotes not handled using pg_autoctl
+  sed -i "s?.*promote_trigger_file =.*?# promote_trigger_file = '$PGDATA/promote.signal'?g" $PGDATA/postgresql.conf
+  # On production clusters we want to have a larger wal keep config
+  sed -i "s?.*wal_keep_size =.*?wal_keep_size = '10 GB'?g" $PGDATA/postgresql.conf
+fi
+
+if [ "$POSTGRES_HOST_AUTH_METHOD" == "" ] && [ "$POSTGRES_PASSWORD" == "" ]; then
+  POSTGRES_HOST_AUTH_METHOD=trust
+fi
+
+/scripts/pghba $POSTGRES_HOST_AUTH_METHOD

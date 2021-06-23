@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+if [ "$(id -u)" == '0' ]; then
+	mkdir -p "$PGDATAOLD" "$PGDATANEW"
+	chmod 700 "$PGDATAOLD" "$PGDATANEW"
+	chown postgres .
+	chown -R postgres:postgres "$PGDATAOLD" "$PGDATANEW"
+	exec su-exec postgres "$BASH_SOURCE" "$@"
+fi
+
+if [ ! -s "$PGDATANEW/PG_VERSION" ]; then
+  PGDATA="$PGDATANEW" $PGBINNEW/initdb "$POSTGRES_INITDB_ARGS"
+  PGDATA="$PGDATANEW" /scripts/tuneconfig
+fi
+
+exec pg_upgrade "$@"

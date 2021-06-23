@@ -1,5 +1,7 @@
 #!/bin/bash
 set -Eeo pipefail
+if [ "$(id -u)" != "1000" ] ; then exec su-exec postgres "$BASH_SOURCE" "$@"; fi
+
 source /usr/local/bin/docker-entrypoint.sh
 
 if [ "$POSTGRES_HOST_AUTH_METHOD" == "" ] && [ "$POSTGRES_PASSWORD" == "" ]; then
@@ -20,8 +22,6 @@ fi
 
 docker_create_db_directories
 
-if [ "$(id -u)" == "0" ] ; then exec su-exec postgres "$BASH_SOURCE" "$@"; fi
-
 INIT_FILES="$(ls /var/lib/postgresql/initdb.d/* 2> /dev/null ||:)"
 if ! docker_init_database_dir; then
   >&2 echo -------------------------
@@ -31,23 +31,7 @@ if ! docker_init_database_dir; then
   exit 1
 fi
 
-# Set the default socket directory to /var/run/postgresql or $PGHOST
-sed -i "s?.*unix_socket_directories =.*?unix_socket_directories = '$PGHOST'?g" $PGDATA/postgresql.conf
-sed -i "s?.*listen_addresses =.*?listen_addresses = '*'?g" $PGDATA/postgresql.conf
-sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = 'pg_stat_statements'?g" $PGDATA/postgresql.conf
-sed -i "s?.*idle_in_transaction_session_timeout =.*?idle_in_transaction_session_timeout = 60s?g" $PGDATA/postgresql.conf
-sed -i "s?.*promote_trigger_file =.*?promote_trigger_file = '$PGDATA/promote.signal'?g" $PGDATA/postgresql.conf
-sed -i "s?.*synchronous_commit =.*?synchronous_commit = off?g" $PGDATA/postgresql.conf
-sed -i "s?.*wal_level =.*?wal_level = 'logical'?g" $PGDATA/postgresql.conf
-sed -i "s?.*max_connections =.*?max_connections = 300?g" $PGDATA/postgresql.conf
-
-# Use a secure pg_hba.conf by default
-install -m 600 /scripts/pg_hba.conf $PGDATA
-
-# Optionally allow to have it insecure for CI or local dev
-if [ "$POSTGRES_HOST_AUTH_METHOD" == "trust" ]; then
-  sed -i 's/ md5/ trust/g' $PGDATA/pg_hba.conf
-fi
+/scripts/tuneconfig
 
 # PGPASSWORD is required for psql when authentication is required for 'local' connections via pg_hba.conf and is otherwise harmless
 # e.g. when '--auth=md5' or '--auth-local=md5' is used in POSTGRES_INITDB_ARGS

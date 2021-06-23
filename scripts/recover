@@ -1,7 +1,7 @@
 #!/bin/bash
 set -Eeo pipefail
+if [ "$(id -u)" != "1000" ] ; then exec su-exec postgres "$BASH_SOURCE" "$@"; fi
 source /usr/local/bin/docker-entrypoint.sh
-if [ "$(id -u)" != "0" ]; then >&2 echo "This command must be run as the root user."; exit 1; fi
 
 # When recovering, the database directory must be empty
 docker_create_db_directories
@@ -9,9 +9,9 @@ docker_create_db_directories
 # if wal-g is configured, fetch the latest backup using that
 # instead of pg_basebackup as it's much faster
 if false; then
-  su-exec postgres wal-g backup-fetch "$PGDATA" LATEST --config="$WALG_CONFIG_FILE"
+  wal-g backup-fetch "$PGDATA" LATEST --config="$WALG_CONFIG_FILE"
   # set promote_trigger_file in config
 else
   # Fetch most recent full backup if there's no data present
-  su-exec postgres pg_basebackup -w -D "$PGDATA" -X stream "$@"
+  exec pg_basebackup -w -D "$PGDATA" -X stream "$@"
 fi

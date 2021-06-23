@@ -1,20 +1,20 @@
 #!/bin/bash
 set -Eeuo pipefail
-if [ "$(id -u)" != "0" ] ; then >&2 echo "This command must be run as the root user."; exit 1; fi
 
 first=${1:-}
-
-# Support initdb with directories that have wrong permissions and exit after execution
 [ "$first" == "initdb" ] && exec /scripts/initdb "${@:2}"
 [ "$first" == "standby" ] && exec /scripts/standby "${@:2}"
 [ "$first" == "recover" ] && exec /scripts/recover "${@:2}"
 [ "$first" == "backup" ] && exec /scripts/backup "${@:2}"
-[ "$first" == "pg_ctl" ] && exec su-exec postgres "$@"
-[ "$first" == "pg_basebackup" ] && exec su-exec postgres "$@"
-[ "$first" != "postgres" ] && exec "$@"
+[ "$first" == "upgrade" ] && exec /scripts/upgrade "${@:2}"
 
-# Do not execute initdb when the database already exists locally
-if [ ! -s "$PGDATA/PG_VERSION" ]; then /scripts/initdb; fi
+# Run the postgres commands as postgres user
+if [ "$first" == "psql" ] || [ "$first" == "postgres" ] || [ "$first" == "pg_ctl" ] || [ "$first" == "pg_autoctl" ] || [ "$first" == "pg_basebackup" ]; then
+  # Create the database if we run the `postgres` command but a database is not present
+  if [ "$first" == "postgres" ] && [ ! -s "$PGDATA/PG_VERSION" ]; then /scripts/initdb; fi
 
-# Directly invoke postgres if it's provided as first argument
-exec su-exec postgres "$@"
+  [ "$(id -u)" == "1000" ] && exec "$@"
+  exec su-exec postgres "$@"
+fi
+
+exec "$@"

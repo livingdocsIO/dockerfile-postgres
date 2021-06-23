@@ -33,16 +33,18 @@ fi
 
 /scripts/tuneconfig
 
-# PGPASSWORD is required for psql when authentication is required for 'local' connections via pg_hba.conf and is otherwise harmless
-# e.g. when '--auth=md5' or '--auth-local=md5' is used in POSTGRES_INITDB_ARGS
-export PGPASSWORD="${PGPASSWORD:-$POSTGRES_PASSWORD}"
-docker_temp_server_start "$@"
+if [ "${#INIT_FILES}" -gt 0 ]; then
+  # PGPASSWORD is required for psql when authentication is required for 'local' connections via pg_hba.conf and is otherwise harmless
+  # e.g. when '--auth=md5' or '--auth-local=md5' is used in POSTGRES_INITDB_ARGS
+  export PGPASSWORD="${PGPASSWORD:-$POSTGRES_PASSWORD}"
+  docker_temp_server_start "$@"
 
-docker_setup_db
-[ "${#INIT_FILES}" -gt 0 ] && docker_process_init_files $INIT_FILES
+  docker_setup_db
+  docker_process_init_files $INIT_FILES
 
-docker_temp_server_stop
-unset PGPASSWORD
+  docker_temp_server_stop
+  unset PGPASSWORD
+fi
 
 >&2 printf '
 

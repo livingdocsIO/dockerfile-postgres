@@ -3,7 +3,9 @@ set -Eeo pipefail
 if [ "$(id -u)" != "1000" ] ; then exec su-exec postgres "$BASH_SOURCE" "$@"; fi
 
 TRUST=$1
-if [ "$1" != "trust" ]; then TRUST=md5; fi
+if [ "$TRUST" == "" ] && [ "$POSTGRES_HOST_AUTH_METHOD" != "" ]; then TRUST=$POSTGRES_HOST_AUTH_METHOD; fi
+if [ "$TRUST" == "" ] && [ "$POSTGRES_PASSWORD" == "" ]; then TRUST=trust; fi
+if [ "$TRUST" != "trust" ]; then TRUST=md5; fi
 
 cat <<EOF > $PGDATA/pg_hba.conf
 # TYPE  DATABASE      USER    ADDRESS         METHOD

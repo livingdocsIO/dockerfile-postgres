@@ -1,4 +1,4 @@
-# [Postgres 13.4](https://github.com/livingdocsIO/dockerfile-postgres) [![](https://shields.beevelop.com/docker/pulls/livingdocs/postgres.svg?style=flat-square)](https://hub.docker.com/r/livingdocs/postgres)
+# [Postgres 14.0](https://github.com/livingdocsIO/dockerfile-postgres) [![](https://shields.beevelop.com/docker/pulls/livingdocs/postgres.svg?style=flat-square)](https://hub.docker.com/r/livingdocs/postgres)
 
 - Based on Debian
 - Includes `postgres-contrib`, enables the extensions `pg_stat_statements` and `pg_squeeze` by default
@@ -13,7 +13,7 @@
 
 ```bash
 # Secured with a password, by default the image is secure
-docker run -d --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=somepassword livingdocs/postgres:13.4
+docker run -d --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=somepassword livingdocs/postgres:14.0
 ```
 
 ## Start an existing container
@@ -26,10 +26,10 @@ docker start postgres
 ## To build this image manually
 
 ```bash
-docker build -t livingdocs/postgres:13.4 .
+docker build -t livingdocs/postgres:14.0 .
 
 # To build and push the multi-arch manifest to docker hub
-docker buildx build --platform linux/amd64,linux/arm64 -t livingdocs/postgres:13.4 --push .
+docker buildx build --platform linux/amd64,linux/arm64 -t livingdocs/postgres:14.0 --push .
 ```
 
 ## Set up streaming replication
@@ -37,8 +37,8 @@ docker buildx build --platform linux/amd64,linux/arm64 -t livingdocs/postgres:13
 ### Simple setup
 ```bash
 # Create the containers
-docker run -d -p 5433:5432 --name postgres-1 livingdocs/postgres:13.4
-docker run -d -p 5434:5432 --name postgres-2 livingdocs/postgres:13.4 standby -d "host=host.docker.internal port=5433 user=postgres target_session_attrs=read-write"
+docker run -d -p 5433:5432 --name postgres-1 livingdocs/postgres:14.0
+docker run -d -p 5434:5432 --name postgres-2 livingdocs/postgres:14.0 standby -d "host=host.docker.internal port=5433 user=postgres target_session_attrs=read-write"
 
 # Test the replication
 docker exec postgres-1 psql -c "CREATE TABLE hello (value text); INSERT INTO hello(value) VALUES('world');"
@@ -56,7 +56,7 @@ docker exec postgres-2 psql -c "SELECT * FROM hello;"
 docker network create local
 
 # First create the database primary
-docker run -d -p 5433:5432 --name postgres-1 --network=local --network-alias=postgres -e POSTGRES_HOST_AUTH_METHOD=md5 livingdocs/postgres:13.4
+docker run -d -p 5433:5432 --name postgres-1 --network=local --network-alias=postgres -e POSTGRES_HOST_AUTH_METHOD=md5 livingdocs/postgres:14.0
 
 # Create the users on database intialization
 # You could also moount an sql or script into /var/lib/postgresql/initdb.d during cluster startup to execute the script automatically.
@@ -65,8 +65,8 @@ docker exec postgres-1 psql -c "CREATE USER replication REPLICATION LOGIN ENCRYP
 
 # The launch the replicas
 export DB_URL="host=postgres port=5432 user=replication password=some-replication-password target_session_attrs=read-write"
-docker run -d -p 5434:5432 --name postgres-2 --network=local --network-alias=postgres livingdocs/postgres:13.4 standby -d $DB_URL
-docker run -d -p 5435:5432 --name postgres-3 --network=local --network-alias=postgres livingdocs/postgres:13.4 standby -d $DB_URL
+docker run -d -p 5434:5432 --name postgres-2 --network=local --network-alias=postgres livingdocs/postgres:14.0 standby -d $DB_URL
+docker run -d -p 5435:5432 --name postgres-3 --network=local --network-alias=postgres livingdocs/postgres:14.0 standby -d $DB_URL
 
 # Test the replication
 docker exec postgres-1 psql -c "CREATE TABLE hello (value text); INSERT INTO hello(value) VALUES('hello');"

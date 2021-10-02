@@ -13,15 +13,22 @@
 
 ```bash
 # Secured with a password, by default the image is secure
-docker run -d --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=somepassword livingdocs/postgres:14.0
+docker run -d  --name postgres -p 5432:5432 -v postgres:/var/lib/postgresql -e POSTGRES_PASSWORD=somepassword livingdocs/postgres:14.0
 ```
 
-## Start an existing container
+## Upgrade an existing postgres container
 
 ```bash
-docker start postgres
-```
+# Let's assume you've created a container previously
+docker run -d --name postgres -p 5432:5432 -v postgres:/var/lib/postgresql livingdocs/postgres:13.4
 
+# First stop it, then run the upgrade image
+docker stop postgres
+docker run --rm -v postgres:/var/lib/postgresql livingdocs/postgres:14.0-upgrade
+
+# After it succeeds, you can run the new image and mount the existing volume
+docker run -d --name postgres -p 5432:5432 -v postgres:/var/lib/postgresql livingdocs/postgres:14.0
+```
 
 ## To build this image manually
 

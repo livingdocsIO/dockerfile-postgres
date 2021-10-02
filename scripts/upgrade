@@ -1,17 +1,74 @@
 #!/bin/bash
 set -e
+VERSION=$(cat "/var/lib/postgresql/data/PG_VERSION" || echo "")
 
-if [ "$(id -u)" == '0' ]; then
-	mkdir -p "$PGDATAOLD" "$PGDATANEW"
-	chmod 700 "$PGDATAOLD" "$PGDATANEW"
-	chown postgres .
-	chown -R postgres:postgres "$PGDATAOLD" "$PGDATANEW"
-	exec su-exec postgres "$BASH_SOURCE" "$@"
+if [ "$VERSION" == "$PG_MAJOR" ]; then
+  >&2 echo "The directory /var/lib/postgresql/data is already running postgres $PG_MAJOR. Skipping."
+	exit 0;
 fi
 
-if [ ! -s "$PGDATANEW/PG_VERSION" ]; then
-  PGDATA="$PGDATANEW" $PGBINNEW/initdb "$POSTGRES_INITDB_ARGS"
-  PGDATA="$PGDATANEW" /scripts/tuneconfig
+if [ "$VERSION" == "" ]; then
+	>&2 echo "The directory /var/lib/postgresql/data is not a postgres data directory. Cancelling."
+	exit 1
 fi
 
-exec pg_upgrade "$@"
+if [ ! -x "/usr/lib/postgresql/$VERSION/bin/initdb" ]; then
+	>&2 echo "The directory /var/lib/postgresql/data is setup using postgres $VERSION, which is not supported. Cancelling."
+	exit 1
+fi
+
+export PGBINOLD=/usr/lib/postgresql/$VERSION/bin
+export PGBINNEW=/usr/lib/postgresql/$PG_MAJOR/bin
+export PGDATAOLD=/var/lib/postgresql/data
+export PGDATANEW=/var/lib/postgresql/data.new
+
+if mountpoint -q /var/lib/postgresql/data; then
+	>&2 echo "The directory /var/lib/postgresql/data is a mounted volume."
+	>&2 echo "Moving the data directory to /var/lib/postgresql/data/data"
+	>&2 echo "Please mount the volume to /var/lib/postgresql in the future."
+
+	cd /var/lib/postgresql
+	shopt -s extglob dotglob
+	mv !(data) data
+	shopt -u dotglob
+	chown postgres:postgres data
+	chmod 700 data
+
+	export PGDATAOLD=/var/lib/postgresql/data/data
+	export PGDATANEW=/var/lib/postgresql/data/data.new
+fi
+
+# Change the owner in case it is wrong
+# Older postgres images use various different user ids
+# By now we're just using id 1000
+if [ "$(stat -c '%U' $PGDATA/PG_VERSION)" != "postgres" ]; then
+	# Older images have different permissions on the data directory
+	# Attention, this change could be destructive and permission
+	# need to get reverted in case an error happens.
+	if [ "$(id -u)" == '0' ]; then
+		chmod 700 $PGDATAOLD
+		chown -R postgres:postgres .
+	else
+		>&2 echo "The directory /var/lib/postgresql/data has wrong permissions and container is not running as root. Cancelling."
+		exit 1
+	fi
+fi
+
+if [ -d "$PGDATANEW" ]; then
+	>&2 echo "The directory $PGDATANEW already exists. Therefore an upgrade failed before. Exiting."
+	exit 1
+fi
+
+if [ "$(id -u)" != "1000" ] ; then
+	PGDATA="$PGDATANEW" su-exec postgres:postgres $PGBINNEW/initdb
+	PGDATA="$PGDATANEW" su-exec postgres:postgres /scripts/tuneconfig
+	su-exec postgres:postgres pg_upgrade --link -j $(getconf _NPROCESSORS_ONLN)
+else
+	PGDATA="$PGDATANEW" $PGBINNEW/initdb
+	PGDATA="$PGDATANEW" /scripts/tuneconfig
+	pg_upgrade --link -j $(getconf _NPROCESSORS_ONLN)
+fi
+rm -Rf $PGDATAOLD.old delete_old_cluster.sh
+mv $PGDATAOLD $PGDATAOLD.old
+mv $PGDATANEW $PGDATAOLD
+

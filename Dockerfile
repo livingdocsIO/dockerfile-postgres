@@ -47,6 +47,7 @@ RUN set -e \
   apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/log/*
 
 USER postgres
+ENV PG_MAJOR=14
 ENV PGUSER=postgres
 ENV PGHOST /var/run/postgresql
 ENV PGPORT 5432

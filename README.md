@@ -59,7 +59,7 @@ docker network create local
 docker run -d -p 5433:5432 --name postgres-1 --network=local --network-alias=postgres -e POSTGRES_HOST_AUTH_METHOD=md5 livingdocs/postgres:14.0
 
 # Create the users on database intialization
-# You could also moount an sql or script into /var/lib/postgresql/initdb.d during cluster startup to execute the script automatically.
+# You could also mount an sql or script into /var/lib/postgresql/initdb.d during cluster startup to execute the script automatically.
 docker exec postgres-1 psql -c "ALTER ROLE postgres ENCRYPTED PASSWORD 'some-postgres-password';"
 docker exec postgres-1 psql -c "CREATE USER replication REPLICATION LOGIN ENCRYPTED PASSWORD 'some-replication-password';"
 

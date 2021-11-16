@@ -37,6 +37,7 @@ docker build -t livingdocs/postgres:14.1 .
 
 # To build and push the multi-arch manifest to docker hub
 docker buildx build --platform linux/amd64,linux/arm64 -t livingdocs/postgres:14.1 --push .
+docker buildx build --platform linux/amd64,linux/arm64 -t livingdocs/postgres:14.1-upgrade --push  -f Dockerfile.upgrade .
 ```
 
 ## Set up streaming replication

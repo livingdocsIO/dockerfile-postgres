@@ -25,10 +25,10 @@ RUN set -e \
   apt-get update && \
   apt-get install -y --no-install-recommends postgresql-common && \
 	sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf && \
-	apt-get install -y --no-install-recommends "postgresql-14=14.0-1.pgdg110+1" && \
+	apt-get install -y --no-install-recommends "postgresql-14=14.1-1.pgdg110+1" && \
   echo 'Install pg_auto_failover' && \
   sh -c 'curl https://install.citusdata.com/community/deb.sh | bash' && \
-  apt-get install -y postgresql-14-auto-failover-1.6.2 && \
+  apt-get install -y postgresql-14-auto-failover-1.6.3 && \
   echo 'Install wal-g' && \
   curl -L https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-18.04-amd64 > /usr/local/bin/wal-g && \
   chmod +x /usr/local/bin/wal-g && \

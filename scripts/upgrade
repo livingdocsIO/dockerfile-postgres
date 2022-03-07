@@ -27,12 +27,11 @@ if mountpoint -q /var/lib/postgresql/data; then
 	>&2 echo "Moving the data directory to /var/lib/postgresql/data/data"
 	>&2 echo "Please mount the volume to /var/lib/postgresql in the future."
 
-	cd /var/lib/postgresql
-	shopt -s extglob dotglob
-	mv !(data) data
-	shopt -u dotglob
+	cd /var/lib/postgresql/data
+	mkdir data
 	chown postgres:postgres data
 	chmod 700 data
+	ls -1 | grep -v ^data$ | xargs -I{} mv {} data/
 
 	export PGDATAOLD=/var/lib/postgresql/data/data
 	export PGDATANEW=/var/lib/postgresql/data/data.new

@@ -15,14 +15,14 @@ sed -i "s?.*wal_log_hints =.*?wal_log_hints = on?g" $PGDATA/postgresql.conf
 sed -i "s?.*wal_level =.*?wal_level = 'logical'?g" $PGDATA/postgresql.conf
 sed -i "s?.*max_connections =.*?max_connections = 300?g" $PGDATA/postgresql.conf
 
+POSTGRES_SHARED_PRELOAD_LIBRARIES="${POSTGRES_SHARED_PRELOAD_LIBRARIES:-pg_stat_statements}"
 if ! grep -q "postgresql-auto-failover" "$PGDATA/postgresql.conf"; then
-  # Attention, the promote trigger file can be destructive with pg_auto_failover
   sed -i "s?.*promote_trigger_file =.*?promote_trigger_file = '$PGDATA/promote.signal'?g" $PGDATA/postgresql.conf
-  sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = 'pg_stat_statements,pg_squeeze'?g" $PGDATA/postgresql.conf
+  sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = '$POSTGRES_SHARED_PRELOAD_LIBRARIES'?g" $PGDATA/postgresql.conf
   sed -i "s?.*synchronous_commit =.*?synchronous_commit = off?g" $PGDATA/postgresql.conf
   sed -i "s?.*wal_keep_size =.*?wal_keep_size = '1 GB'?g" $PGDATA/postgresql.conf
 else
-  sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = 'pg_stat_statements,pg_squeeze,pgautofailover'?g" $PGDATA/postgresql.conf
+  sed -i "s?.*shared_preload_libraries =.*?shared_preload_libraries = '$POSTGRES_SHARED_PRELOAD_LIBRARIES,pgautofailover'?g" $PGDATA/postgresql.conf
   # Synchronous commit is managed by pg_auto_failover
   sed -i "s?.*synchronous_commit =.*?# synchronous_commit = off?g" $PGDATA/postgresql.conf
   # pg_auto_failover can't handle manual promotes not handled using pg_autoctl

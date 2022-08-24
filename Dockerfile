@@ -19,18 +19,17 @@ RUN set -e \
   apt-get install -y curl nano pspg procps gosu dnsutils gnupg git && \
   # Alias gosu as the scripts are still used for alpine linux
   ln -s /usr/sbin/gosu /usr/sbin/su-exec && \
-  echo "Install Postgres" && \
+  >&2 echo "Install Postgres" && \
   sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main 14" > /etc/apt/sources.list.d/pgdg.list' && \
   sh -c 'curl -s https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -' && \
   apt-get update && \
   apt-get install -y --no-install-recommends postgresql-common && \
 	sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf && \
-	apt-get install -y --no-install-recommends "postgresql-14=14.4-1.pgdg110+1" && \
-  echo 'Install pg_auto_failover' && \
-  sh -c 'curl https://install.citusdata.com/community/deb.sh | bash' && \
-  apt-get install -y postgresql-14-auto-failover-1.6.4 && \
-  echo 'Install wal-g' && \
-  curl -L https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-18.04-amd64 > /usr/local/bin/wal-g && \
+	apt-get install -y --no-install-recommends "postgresql-14=14.5-1.pgdg110+1" && \
+  >&2 echo 'Install pg_auto_failover' && \
+  apt-get install -y pg-auto-failover-cli postgresql-14-auto-failover && \
+  >&2 echo 'Install wal-g' && \
+  curl -s -L https://github.com/wal-g/wal-g/releases/download/v2.0.0/wal-g-pg-ubuntu-18.04-amd64 > /usr/local/bin/wal-g && \
   chmod +x /usr/local/bin/wal-g && \
   # We need to have locales enabled for postgres
   grep -q '/usr/share/locale' /etc/dpkg/dpkg.cfg.d/docker && \
@@ -38,11 +37,11 @@ RUN set -e \
   ! grep -q '/usr/share/locale' /etc/dpkg/dpkg.cfg.d/docker && \
 	apt-get update; apt-get install -y --no-install-recommends locales && \
 	localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8 && \
-  # Install pg_squeeze
+  >&2 echo "Install pg_squeeze" && \
   apt-get install -y postgresql-server-dev-14 build-essential && \
   git clone https://github.com/cybertec-postgresql/pg_squeeze.git /tmp/pg_squeeze && \
   cd /tmp/pg_squeeze && git checkout REL1_4 && make && make install && \
-  # Cleanup
+  >&2 echo "Cleanup" && \
   apt-get purge -y --auto-remove apt-transport-https gnupg git postgresql-server-dev-14 build-essential && \
   apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/log/*
 

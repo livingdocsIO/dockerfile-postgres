@@ -13,17 +13,17 @@ ADD ./scripts /scripts
 RUN /scripts/postgres-install && rm /scripts/postgres-install
 
 USER postgres
-ENV PG_MAJOR=15
+ENV PG_MAJOR=16
 ENV PGUSER=postgres
 ENV PGHOST /var/run/postgresql
 ENV PGPORT 5432
 ENV PGDATA /var/lib/postgresql/data
 ENV PAGER 'pspg -s 0'
-ENV PATH="$PATH:/usr/lib/postgresql/15/bin:/scripts"
+ENV PATH="$PATH:/usr/lib/postgresql/16/bin:/scripts"
 ENV WALG_CONFIG_FILE=/var/lib/postgresql/.walg.json
 ENV LANG en_US.utf8
 
-COPY --from=postgres:15 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --from=postgres:16 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 ADD ./scripts /scripts
 
 STOPSIGNAL SIGINT

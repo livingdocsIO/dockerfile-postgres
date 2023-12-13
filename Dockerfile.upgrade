@@ -1,10 +1,10 @@
-FROM livingdocs/postgres:15.4
+FROM livingdocs/postgres:16.1
 USER root
 RUN set -e \
   export DEBIAN_FRONTEND=noninteractive && \
-  apt-get update && apt-get install -y git build-essential postgresql-9.6 postgresql-11 postgresql-12 postgresql-13 postgresql-14  && \
+  apt-get update && apt-get install -y git build-essential postgresql-11 postgresql-12 postgresql-13 postgresql-14 postgresql-15  && \
   # Cleanup
-  apt-get purge -y --auto-remove apt-transport-https git postgresql-server-dev-12 postgresql-server-dev-13 postgresql-server-dev-14 build-essential && \
+  apt-get purge -y --auto-remove apt-transport-https git postgresql-server-dev-11 postgresql-server-dev-12 postgresql-server-dev-13 postgresql-server-dev-14 postgresql-server-dev-15 build-essential && \
   apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/log/*
 
 STOPSIGNAL SIGINT

@@ -59,9 +59,9 @@ if [ -d "$PGDATANEW" ]; then
 fi
 
 if [ "$(id -u)" != "1000" ] ; then
-	PGDATA="$PGDATANEW" su-exec postgres:postgres $PGBINNEW/initdb
-	PGDATA="$PGDATANEW" su-exec postgres:postgres /scripts/tuneconfig
-	su-exec postgres:postgres pg_upgrade --link -j $(getconf _NPROCESSORS_ONLN)
+	PGDATA="$PGDATANEW" gosu postgres:postgres $PGBINNEW/initdb
+	PGDATA="$PGDATANEW" gosu postgres:postgres /scripts/tuneconfig
+	gosu postgres:postgres pg_upgrade --link -j $(getconf _NPROCESSORS_ONLN)
 else
 	PGDATA="$PGDATANEW" $PGBINNEW/initdb
 	PGDATA="$PGDATANEW" /scripts/tuneconfig

@@ -120,4 +120,4 @@ SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pi
 Then promote the replica. There are two options:
 - Create the `promote.signal` in the data directory `touch /var/lib/postgresql/data/promote.signal` on the replica.
   If you've changed your configuration, make sure `promote_trigger_file` declares that path.
-- Execute `su-exec postgres pg_ctl promote` in the container.
+- Execute `gosu postgres pg_ctl promote` in the container.

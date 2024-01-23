@@ -1,6 +1,6 @@
 #!/bin/bash
 set -Eeo pipefail
-if [ "$(id -u)" != "1000" ] ; then exec su-exec postgres "$BASH_SOURCE" "$@"; fi
+if [ "$(id -u)" != "1000" ] ; then exec gosu postgres "$BASH_SOURCE" "$@"; fi
 
 TRUST=$1
 if [ "$TRUST" == "" ] && [ "$POSTGRES_HOST_AUTH_METHOD" != "" ]; then TRUST=$POSTGRES_HOST_AUTH_METHOD; fi

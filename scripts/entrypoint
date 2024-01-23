@@ -14,7 +14,7 @@ if [ "$first" == "psql" ] || [ "$first" == "postgres" ] || [ "$first" == "pg_ctl
   if [ "$first" == "postgres" ] && [ ! -s "$PGDATA/PG_VERSION" ]; then /scripts/initdb; fi
 
   [ "$(id -u)" == "1000" ] && exec "$@"
-  exec su-exec postgres "$@"
+  exec gosu postgres "$@"
 fi
 
 exec "$@"

@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 WORKDIR /var/lib/postgresql
 
 # Volume mounts should happen on /var/lib/postgresql and /var/run/postgresql

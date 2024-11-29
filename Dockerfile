@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 WORKDIR /var/lib/postgresql
 
 # Volume mounts should happen on /var/lib/postgresql and /var/run/postgresql
@@ -20,12 +20,12 @@ RUN set -e \
   # Alias gosu as the scripts are still used for alpine linux
   ln -s /usr/sbin/gosu /usr/sbin/su-exec && \
   echo "Install Postgres" && \
-  sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt buster-pgdg main 13" > /etc/apt/sources.list.d/pgdg.list' && \
+  sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main 13" > /etc/apt/sources.list.d/pgdg.list' && \
   sh -c 'curl -s https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -' && \
   apt-get update && \
   apt-get install -y --no-install-recommends postgresql-common && \
 	sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf && \
-	apt-get install -y --no-install-recommends "postgresql-13=13.4-1.pgdg100+1" && \
+	apt-get install -y --no-install-recommends "postgresql-13=13.18-1.pgdg110+1" && \
   echo 'Install pg_auto_failover' && \
   sh -c 'curl https://install.citusdata.com/community/deb.sh | bash' && \
   apt-get install -y postgresql-13-auto-failover-1.6 && \

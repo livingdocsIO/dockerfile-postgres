@@ -1,4 +1,4 @@
-FROM livingdocs/postgres:13.3
+FROM livingdocs/postgres:13.18
 USER root
 RUN set -e \
   export DEBIAN_FRONTEND=noninteractive && \

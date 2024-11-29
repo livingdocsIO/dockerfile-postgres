@@ -23,7 +23,7 @@ ENV PATH="$PATH:/usr/lib/postgresql/17/bin:/scripts"
 ENV WALG_CONFIG_FILE=/var/lib/postgresql/.walg.json
 ENV LANG en_US.utf8
 
-COPY --from=postgres:17.0 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --from=postgres:17.2 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 ADD ./scripts /scripts
 
 STOPSIGNAL SIGINT

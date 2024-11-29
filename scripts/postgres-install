@@ -19,7 +19,7 @@ curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor > /e
 apt-get update
 apt-get install -y --no-install-recommends postgresql-common
 sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf
-apt-get install -y --no-install-recommends "postgresql-17=17.0-1.pgdg120+1"
+apt-get install -y --no-install-recommends "postgresql-17=17.2-1.pgdg120+1"
 
 >&2 echo 'Install pg_auto_failover'
 apt-get install -y --no-install-recommends pg-auto-failover-cli postgresql-17-auto-failover

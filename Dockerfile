@@ -25,7 +25,7 @@ RUN set -e \
   apt-get update && \
   apt-get install -y --no-install-recommends postgresql-common && \
 	sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf && \
-	apt-get install -y --no-install-recommends "postgresql-14=14.5-1.pgdg110+1" && \
+	apt-get install -y --no-install-recommends "postgresql-14=14.15-1.pgdg110+1" && \
   >&2 echo 'Install pg_auto_failover' && \
   apt-get install -y pg-auto-failover-cli postgresql-14-auto-failover && \
   >&2 echo 'Install wal-g' && \

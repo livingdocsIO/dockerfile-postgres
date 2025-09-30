@@ -13,21 +13,18 @@ chown -R postgres:postgres /var/lib/postgresql /var/run/postgresql
 apt-get install -y --no-install-recommends curl nano pspg procps gosu dnsutils gnupg git ca-certificates
 
 >&2 echo "Install Postgres"
-echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main 17" > /etc/apt/sources.list.d/pgdg.list
+echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main 18" > /etc/apt/sources.list.d/pgdg.list
 curl -sS https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/pgdg.gpg
 
 apt-get update
 apt-get install -y --no-install-recommends postgresql-common
 sed -ri 's/#(create_main_cluster) .*$/\1 = false/' /etc/postgresql-common/createcluster.conf
-apt-get install -y --no-install-recommends "postgresql-17=17.2-1.pgdg120+1"
-
->&2 echo 'Install pg_auto_failover'
-apt-get install -y --no-install-recommends pg-auto-failover-cli postgresql-17-auto-failover
+apt-get install -y --no-install-recommends "postgresql-18"
 
 >&2 echo 'Install wal-g'
 archfile=wal-g-fdb-ubuntu-20.04-amd64
 if [ "$(uname -m)" == "aarch64" ]; then archfile=wal-g-fdb-ubuntu20.04-aarch64; fi
-curl -s -L "https://github.com/wal-g/wal-g/releases/download/v3.0.3/$archfile" > /usr/local/bin/wal-g
+curl -s -L "https://github.com/wal-g/wal-g/releases/download/v3.0.7/$archfile" > /usr/local/bin/wal-g
 chmod +x /usr/local/bin/wal-g
 # We need to have locales enabled for postgres
 grep -q '/usr/share/locale' /etc/dpkg/dpkg.cfg.d/docker || sed -ri '/\/usr\/share\/locale/d' /etc/dpkg/dpkg.cfg.d/docker

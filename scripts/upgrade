@@ -59,10 +59,12 @@ if [ -d "$PGDATANEW" ]; then
 fi
 
 if [ "$(id -u)" != "1000" ] ; then
+	gosu postgres:postgres $PGBINOLD/pg_checksums -e
 	PGDATA="$PGDATANEW" gosu postgres:postgres $PGBINNEW/initdb
 	PGDATA="$PGDATANEW" gosu postgres:postgres /scripts/tuneconfig
 	gosu postgres:postgres pg_upgrade --link -j $(getconf _NPROCESSORS_ONLN)
 else
+	$PGBINOLD/pg_checksums -e
 	PGDATA="$PGDATANEW" $PGBINNEW/initdb
 	PGDATA="$PGDATANEW" /scripts/tuneconfig
 	pg_upgrade --link -j $(getconf _NPROCESSORS_ONLN)

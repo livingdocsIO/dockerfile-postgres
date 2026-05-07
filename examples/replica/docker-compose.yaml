@@ -1,8 +1,8 @@
-version: '3'
+version: "3"
 
 services:
   primary:
-    image: livingdocs/postgres:15.0
+    image: livingdocs/postgres:18.3
     ports: [5432:5432]
     restart: on-failure
     volumes:
@@ -11,7 +11,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   replica:
-    image: livingdocs/postgres:15.0
+    image: livingdocs/postgres:18.3
     ports: [5433:5432]
     restart: on-failure
     volumes:
